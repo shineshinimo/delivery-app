@@ -1,0 +1,1 @@
+console.log('Dias Shaimagambetov - shineshinimo!')

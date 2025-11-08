@@ -1,16 +1,20 @@
 const appEl = document.querySelector('.container');
 const containerEl = document.querySelector('.delivery-list');
-const totalDistance = 0;
+let totalDistance = 0;
 
 const titleEl = document.createElement('h1');
 titleEl.textContent = 'Delivery Orders';
 
 class Delivery {
+    static totalDistance = 0;
+
     constructor(name, street, distance, status = 'in progress') {
         this.name = name;
         this.street = street;
         this.distance = distance;
         this.status = status;
+
+        Delivery.totalDistance += distance;
     }
 
     createCard(container) {
@@ -44,14 +48,16 @@ class Delivery {
         container.append(wrapEl);
         wrapEl.append(titleNameEl, nameEl, titleAddressEl, addressEl, titleDistanceEl, distanceEl, editBtnEl);
     }
+
+    get getTotalDistance() {
+        return Delivery.totalDistance;
+    }
 }
 
 const totalDistanceWrap = document.createElement('div');
 const TotalDistanceEl = document.createElement('span');
 totalDistanceWrap.classList.add('delivery-distance__wrap');
 TotalDistanceEl.classList.add('delivery-distance__info');
-TotalDistanceEl.textContent = `Total distance: ${totalDistance} km`;
-
 const deliveryArr = [
     new Delivery('Dauren', 'Nursultan Nazarbayev st. 41', 4),
     new Delivery('Asylhan', 'Gogol st. 12/1', 7),
@@ -60,7 +66,10 @@ const deliveryArr = [
 
 deliveryArr.forEach(client => {
     client.createCard(containerEl);
+    totalDistance = client.getTotalDistance;
 })
+
+TotalDistanceEl.textContent = `Total distance: ${totalDistance} km`;
 
 totalDistanceWrap.append(TotalDistanceEl);
 appEl.append(totalDistanceWrap);

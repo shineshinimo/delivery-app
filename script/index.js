@@ -42,6 +42,20 @@ class Delivery {
         distanceEl.textContent = `${String(this.distance)} km`;
         editBtnEl.textContent = 'Edit';
 
+        switch (this.status.toLowerCase()) {
+            case 'canceled':
+                wrapEl.classList.add('canceled');
+                break;
+            case 'delivered':
+                wrapEl.classList.add('delivered');
+                break;
+            default:
+                if (wrapEl.classList.contains('canceled') || wrapEl.classList.contains('delivered')) {
+                    wrapEl.classList.remove('delivered');
+                    wrapEl.classList.remove('canceled');
+                }
+        }
+
         container.append(wrapEl);
         wrapEl.append(titleNameEl, nameEl, titleAddressEl, addressEl, titleDistanceEl, distanceEl, editBtnEl);
 
@@ -73,6 +87,7 @@ class Delivery {
         ['In progress', 'Delivered', 'Canceled'].forEach(status => {
             const optionEl = document.createElement('option');
             optionEl.textContent = status;
+            optionEl.value = status;
             inputStatusEl.append(optionEl);
         });
 
@@ -105,6 +120,7 @@ class Delivery {
         const [overlay, modal, saveBtn, closeBtn] = this.createModalEl();
 
         const inputs = modal.querySelectorAll('input');
+
         inputs[0].value = this.name;
         inputs[1].value = this.street;
         inputs[2].value = this.distance;
@@ -130,9 +146,12 @@ class Delivery {
     saveEditChanges(inputs, overlay) {
         Delivery.totalDistance -= this.distance;
 
+        const selectEl = document.querySelector('select');
+
         this.name = inputs[0].value;
         this.street = inputs[1].value;
         this.distance = +inputs[2].value;
+        this.status = selectEl.value;
 
         Delivery.totalDistance += this.distance;
 

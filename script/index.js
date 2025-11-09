@@ -2,9 +2,6 @@ const appEl = document.querySelector('.container');
 const containerEl = document.querySelector('.delivery-list');
 let totalDistance = 0;
 
-const titleEl = document.createElement('h1');
-titleEl.textContent = 'Delivery Orders';
-
 class Delivery {
     static totalDistance = 0;
 
@@ -47,6 +44,100 @@ class Delivery {
 
         container.append(wrapEl);
         wrapEl.append(titleNameEl, nameEl, titleAddressEl, addressEl, titleDistanceEl, distanceEl, editBtnEl);
+
+        editBtnEl.addEventListener('click', () => {
+            this.openEditModal();
+        });
+    }
+
+    createModalEl() {
+        const modalOverlay = document.createElement('div');
+        const modalContainer = document.createElement('div');
+        const formEl = document.createElement('form');
+        const listContainerEl = document.createElement('ul');
+
+        modalOverlay.classList.add('delivery-modal__overlay');
+        modalContainer.classList.add('delivery-modal__container');
+        formEl.classList.add('delivery-form');
+        listContainerEl.classList.add('delivery-form__list');
+
+        const inputsList = [
+            createInput('Name', 'text', `Client's name`),
+            createInput('Street', 'text', `Client's street`),
+            createInput('Distance', 'number', `Distance to client`)
+        ];
+
+        const inputStatusEl = document.createElement('select');
+        inputStatusEl.classList.add('delivery-modal__select');
+
+        ['In progress', 'Delivered', 'Canceled'].forEach(status => {
+            const optionEl = document.createElement('option');
+            optionEl.textContent = status;
+            inputStatusEl.append(optionEl);
+        });
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.textContent = '⨯';
+        closeBtn.classList.add('delivery-modal__close');
+
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'submit';
+        saveBtn.textContent = 'Save';
+        saveBtn.classList.add('delivery-form__btn');
+
+        inputsList.forEach(input => {
+            const liEl = document.createElement('li');
+            liEl.classList.add('delivery-form__item');
+            liEl.append(input);
+            listContainerEl.append(liEl);
+        });
+
+        formEl.append(listContainerEl, inputStatusEl, saveBtn);
+        modalContainer.append(formEl, closeBtn);
+        modalOverlay.append(modalContainer);
+        appEl.append(modalOverlay);
+
+        return [modalOverlay, modalContainer, saveBtn, closeBtn];
+    }
+
+    openEditModal() {
+        const [overlay, modal, saveBtn, closeBtn] = this.createModalEl();
+
+        const inputs = modal.querySelectorAll('input');
+        inputs[0].value = this.name;
+        inputs[1].value = this.street;
+        inputs[2].value = this.distance;
+
+        overlay.classList.add('modal-open');
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) this.closeEditModal(overlay);
+        });
+
+        closeBtn.addEventListener('click', () => this.closeEditModal(overlay));
+
+        saveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.saveEditChanges(inputs, overlay);
+        });
+    }
+
+    closeEditModal(overlay) {
+        overlay.remove();
+    }
+
+    saveEditChanges(inputs, overlay) {
+        Delivery.totalDistance -= this.distance;
+
+        this.name = inputs[0].value;
+        this.street = inputs[1].value;
+        this.distance = +inputs[2].value;
+
+        Delivery.totalDistance += this.distance;
+
+        renderDeliveries(deliveryArr, containerEl, TotalDistanceEl);
+        overlay.remove();
     }
 
     get getTotalDistance() {
@@ -54,81 +145,33 @@ class Delivery {
     }
 }
 
-function createModalEl() {
-    if (document.querySelector('.delivery-modal__overlay')) {
-        return;
-    }
-
-    const modalOverlay = document.createElement('div');
-    const modalContainer = document.createElement('div');
-    const formEl = document.createElement('form');
-    const listContainerEl = document.createElement('ul');
-
-    // const inputNameEl = createInput('Name', 'text', `Client's name`);
-    // const inputStreetEl = createInput('Street', 'text', `Client's street`);
-    // const inputDistanceEl = createInput('Distance', 'number', `Distance to client`);
-
-    const inputsList = [createInput('Name', 'text', `Client's name`),
-    createInput('Street', 'text', `Client's street`),
-    createInput('Distance', 'number', `Distance to client`)];
-
-    const inputStatusEl = document.createElement('select');
-
-    const optionInProgressEl = document.createElement('option');
-    const optionCanceledEl = document.createElement('option');
-    const optionDeliveredEl = document.createElement('option');
-
-    optionInProgressEl.classList.add('delivery-modal__option');
-    optionCanceledEl.classList.add('delivery-modal__option');
-    optionDeliveredEl.classList.add('delivery-modal__option');
-
-    optionInProgressEl.textContent = 'In progress';
-    optionCanceledEl.textContent = 'Canceled';
-    optionDeliveredEl.textContent = 'Delivered';
-
-    inputStatusEl.append(optionInProgressEl, optionDeliveredEl, optionCanceledEl);
-    inputsList.forEach(input => {
-        const liEl = document.createElement('li');
-        liEl.append(input);
-        listContainerEl.append(liEl);
-    });
-    formEl.append(listContainerEl);
-    modalContainer.append(formEl);
-    modalOverlay.append(modalContainer);
-
-    return [
-        modalOverlay,
-        modalContainer,
-        listContainerEl
-    ]
-}
-
 function createInput(placeholder, type, name) {
     const inputEl = document.createElement('input');
     inputEl.placeholder = placeholder;
     inputEl.name = name;
     inputEl.type = type;
-    inputEl.classList.add('delivery-modal__input');
-
+    inputEl.classList.add('delivery-form__input');
     return inputEl;
+}
+
+function renderDeliveries(deliveries, container, distEl) {
+    container.innerHTML = '';
+    deliveries.forEach(delivery => delivery.createCard(container));
+    distEl.textContent = `Total distance: ${Delivery.totalDistance} km`;
 }
 
 const totalDistanceWrap = document.createElement('div');
 const TotalDistanceEl = document.createElement('span');
 totalDistanceWrap.classList.add('delivery-distance__wrap');
 TotalDistanceEl.classList.add('delivery-distance__info');
+
 const deliveryArr = [
     new Delivery('Dauren', 'Nursultan Nazarbayev st. 41', 4),
     new Delivery('Asylhan', 'Gogol st. 12/1', 7),
     new Delivery('Violetta', 'Kirova st. 24a', 13)
 ];
 
-deliveryArr.forEach(client => {
-    client.createCard(containerEl);
-    totalDistance = client.getTotalDistance;
-})
-
-TotalDistanceEl.textContent = `Total distance: ${totalDistance} km`;
+renderDeliveries(deliveryArr, containerEl, TotalDistanceEl);
 
 totalDistanceWrap.append(TotalDistanceEl);
 appEl.append(totalDistanceWrap);

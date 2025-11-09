@@ -54,6 +54,65 @@ class Delivery {
     }
 }
 
+function createModalEl() {
+    if (document.querySelector('.delivery-modal__overlay')) {
+        return;
+    }
+
+    const modalOverlay = document.createElement('div');
+    const modalContainer = document.createElement('div');
+    const formEl = document.createElement('form');
+    const listContainerEl = document.createElement('ul');
+
+    // const inputNameEl = createInput('Name', 'text', `Client's name`);
+    // const inputStreetEl = createInput('Street', 'text', `Client's street`);
+    // const inputDistanceEl = createInput('Distance', 'number', `Distance to client`);
+
+    const inputsList = [createInput('Name', 'text', `Client's name`),
+    createInput('Street', 'text', `Client's street`),
+    createInput('Distance', 'number', `Distance to client`)];
+
+    const inputStatusEl = document.createElement('select');
+
+    const optionInProgressEl = document.createElement('option');
+    const optionCanceledEl = document.createElement('option');
+    const optionDeliveredEl = document.createElement('option');
+
+    optionInProgressEl.classList.add('delivery-modal__option');
+    optionCanceledEl.classList.add('delivery-modal__option');
+    optionDeliveredEl.classList.add('delivery-modal__option');
+
+    optionInProgressEl.textContent = 'In progress';
+    optionCanceledEl.textContent = 'Canceled';
+    optionDeliveredEl.textContent = 'Delivered';
+
+    inputStatusEl.append(optionInProgressEl, optionDeliveredEl, optionCanceledEl);
+    inputsList.forEach(input => {
+        const liEl = document.createElement('li');
+        liEl.append(input);
+        listContainerEl.append(liEl);
+    });
+    formEl.append(listContainerEl);
+    modalContainer.append(formEl);
+    modalOverlay.append(modalContainer);
+
+    return [
+        modalOverlay,
+        modalContainer,
+        listContainerEl
+    ]
+}
+
+function createInput(placeholder, type, name) {
+    const inputEl = document.createElement('input');
+    inputEl.placeholder = placeholder;
+    inputEl.name = name;
+    inputEl.type = type;
+    inputEl.classList.add('delivery-modal__input');
+
+    return inputEl;
+}
+
 const totalDistanceWrap = document.createElement('div');
 const TotalDistanceEl = document.createElement('span');
 totalDistanceWrap.classList.add('delivery-distance__wrap');

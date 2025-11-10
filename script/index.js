@@ -1,67 +1,121 @@
 const appEl = document.querySelector('.container');
 const containerEl = document.querySelector('.delivery-list');
-let totalDistance = 0;
 
 class Delivery {
     static totalDistance = 0;
 
     constructor(name, street, distance, status = 'in progress') {
-        this.name = name;
-        this.street = street;
-        this.distance = distance;
-        this.status = status;
+        this._name = name;
+        this._street = street;
+        this._distance = +distance;
+        this._status = status;
 
-        Delivery.totalDistance += distance;
+        if (this._status === 'in progress') {
+            Delivery.totalDistance += this._distance;
+        }
+    }
+
+    get name() {
+        return this._name;
+    }
+    set name(value) {
+        this._name = value;
+        if (this.nameEl) this.nameEl.textContent = value;
+    }
+
+    get street() {
+        return this._street;
+    }
+    set street(value) {
+        this._street = value;
+        if (this.addressEl) this.addressEl.textContent = value;
+    }
+
+    get distance() {
+        return this._distance;
+    }
+    set distance(value) {
+        const newDistance = +value;
+
+        if (this._status === 'in progress') {
+            Delivery.totalDistance -= this._distance;
+            Delivery.totalDistance += newDistance;
+        }
+
+        this._distance = newDistance;
+
+        if (this.distanceEl) {
+            this.distanceEl.textContent = `${this._distance} km`;
+        }
+    }
+
+    get status() {
+        return this._status;
+    }
+    set status(value) {
+        const oldStatus = this._status;
+        const newStatus = value.toLowerCase();
+        this._status = newStatus;
+
+        if (oldStatus === 'in progress' && newStatus !== 'in progress') {
+            Delivery.totalDistance -= this._distance;
+        } else if (oldStatus !== 'in progress' && newStatus === 'in progress') {
+            Delivery.totalDistance += this._distance;
+        }
+
+        if (this.wrapEl) {
+            this.wrapEl.classList.remove('canceled', 'delivered');
+            if (newStatus === 'canceled') {
+                this.wrapEl.classList.add('canceled');
+            } else if (newStatus === 'delivered') {
+                this.wrapEl.classList.add('delivered');
+            }
+        }
+
+        updateTotalDistance();
     }
 
     createCard(container) {
-        const wrapEl = document.createElement('div');
-        const titleNameEl = document.createElement('span');
-        const nameEl = document.createElement('span');
-        const titleAddressEl = document.createElement('span');
-        const addressEl = document.createElement('span');
-        const titleDistanceEl = document.createElement('span');
-        const distanceEl = document.createElement('span');
-        const editBtnEl = document.createElement('button');
+        this.wrapEl = document.createElement('div');
+        this.titleNameEl = document.createElement('span');
+        this.nameEl = document.createElement('span');
+        this.titleAddressEl = document.createElement('span');
+        this.addressEl = document.createElement('span');
+        this.titleDistanceEl = document.createElement('span');
+        this.distanceEl = document.createElement('span');
+        this.editBtnEl = document.createElement('button');
 
-        wrapEl.classList.add('delivery-card');
-        titleNameEl.classList.add('delivery-card__el', 'delivery-card__title');
-        nameEl.classList.add('delivery-card__el', 'delivery-card__info');
-        titleAddressEl.classList.add('delivery-card__el', 'delivery-card__title');
-        addressEl.classList.add('delivery-card__el', 'delivery-card__info');
-        titleDistanceEl.classList.add('delivery-card__el', 'delivery-card__title');
-        distanceEl.classList.add('delivery-card__el', 'delivery-card__info');
-        editBtnEl.classList.add('delivery-card__edit');
+        this.wrapEl.classList.add('delivery-card');
+        this.titleNameEl.classList.add('delivery-card__el', 'delivery-card__title');
+        this.nameEl.classList.add('delivery-card__el', 'delivery-card__info');
+        this.titleAddressEl.classList.add('delivery-card__el', 'delivery-card__title');
+        this.addressEl.classList.add('delivery-card__el', 'delivery-card__info');
+        this.titleDistanceEl.classList.add('delivery-card__el', 'delivery-card__title');
+        this.distanceEl.classList.add('delivery-card__el', 'delivery-card__info');
+        this.editBtnEl.classList.add('delivery-card__edit');
 
-        titleNameEl.textContent = 'Name';
-        titleAddressEl.textContent = 'Address';
-        titleDistanceEl.textContent = 'Distance';
+        this.titleNameEl.textContent = 'Name';
+        this.titleAddressEl.textContent = 'Address';
+        this.titleDistanceEl.textContent = 'Distance';
+        this.nameEl.textContent = this._name;
+        this.addressEl.textContent = this._street;
+        this.distanceEl.textContent = `${this._distance} km`;
+        this.editBtnEl.textContent = 'Edit';
 
-        nameEl.textContent = this.name;
-        addressEl.textContent = this.street;
-        distanceEl.textContent = `${String(this.distance)} km`;
-        editBtnEl.textContent = 'Edit';
+        this.status = this._status;
 
-        switch (this.status.toLowerCase()) {
-            case 'canceled':
-                wrapEl.classList.add('canceled');
-                break;
-            case 'delivered':
-                wrapEl.classList.add('delivered');
-                break;
-            default:
-                if (wrapEl.classList.contains('canceled') || wrapEl.classList.contains('delivered')) {
-                    wrapEl.classList.remove('delivered');
-                    wrapEl.classList.remove('canceled');
-                }
-        }
+        this.editBtnEl.addEventListener('click', () => this.openEditModal());
 
-        container.append(wrapEl);
-        wrapEl.append(titleNameEl, nameEl, titleAddressEl, addressEl, titleDistanceEl, distanceEl, editBtnEl);
-
-        editBtnEl.addEventListener('click', () => {
-            this.openEditModal();
-        });
+        this.wrapEl.append(
+            this.titleNameEl,
+            this.nameEl,
+            this.titleAddressEl,
+            this.addressEl,
+            this.titleDistanceEl,
+            this.distanceEl,
+            this.editBtnEl
+        );
+        container.append(this.wrapEl);
     }
 
     createModalEl() {
@@ -78,12 +132,11 @@ class Delivery {
         const inputsList = [
             createInput('Name', 'text', `Client's name`),
             createInput('Street', 'text', `Client's street`),
-            createInput('Distance', 'number', `Distance to client`)
+            createInput('Distance', 'number', `Distance to client`),
         ];
 
         const inputStatusEl = document.createElement('select');
         inputStatusEl.classList.add('delivery-modal__select');
-
         ['In progress', 'Delivered', 'Canceled'].forEach(status => {
             const optionEl = document.createElement('option');
             optionEl.textContent = status;
@@ -118,24 +171,24 @@ class Delivery {
 
     openEditModal() {
         const [overlay, modal, saveBtn, closeBtn] = this.createModalEl();
-
         const inputs = modal.querySelectorAll('input');
+        const selectEl = modal.querySelector('select');
 
-        inputs[0].value = this.name;
-        inputs[1].value = this.street;
-        inputs[2].value = this.distance;
+        inputs[0].value = this._name;
+        inputs[1].value = this._street;
+        inputs[2].value = this._distance;
+        selectEl.value = this._status;
 
         overlay.classList.add('modal-open');
 
-        overlay.addEventListener('click', (e) => {
+        overlay.addEventListener('click', e => {
             if (e.target === overlay) this.closeEditModal(overlay);
         });
-
         closeBtn.addEventListener('click', () => this.closeEditModal(overlay));
 
-        saveBtn.addEventListener('click', (e) => {
+        saveBtn.addEventListener('click', e => {
             e.preventDefault();
-            this.saveEditChanges(inputs, overlay);
+            this.saveEditChanges(inputs, selectEl, overlay);
         });
     }
 
@@ -143,24 +196,14 @@ class Delivery {
         overlay.remove();
     }
 
-    saveEditChanges(inputs, overlay) {
-        Delivery.totalDistance -= this.distance;
-
-        const selectEl = document.querySelector('select');
-
+    saveEditChanges(inputs, selectEl, overlay) {
         this.name = inputs[0].value;
         this.street = inputs[1].value;
-        this.distance = +inputs[2].value;
+        this.distance = inputs[2].value;
         this.status = selectEl.value;
 
-        Delivery.totalDistance += this.distance;
-
-        renderDeliveries(deliveryArr, containerEl, TotalDistanceEl);
+        updateTotalDistance();
         overlay.remove();
-    }
-
-    get getTotalDistance() {
-        return Delivery.totalDistance;
     }
 }
 
@@ -173,10 +216,14 @@ function createInput(placeholder, type, name) {
     return inputEl;
 }
 
-function renderDeliveries(deliveries, container, distEl) {
+function renderDeliveries(deliveries, container) {
     container.innerHTML = '';
     deliveries.forEach(delivery => delivery.createCard(container));
-    distEl.textContent = `Total distance: ${Delivery.totalDistance} km`;
+    updateTotalDistance();
+}
+
+function updateTotalDistance() {
+    TotalDistanceEl.textContent = `Total distance: ${Delivery.totalDistance} km`;
 }
 
 const totalDistanceWrap = document.createElement('div');
@@ -187,10 +234,9 @@ TotalDistanceEl.classList.add('delivery-distance__info');
 const deliveryArr = [
     new Delivery('Dauren', 'Nursultan Nazarbayev st. 41', 4),
     new Delivery('Asylhan', 'Gogol st. 12/1', 7),
-    new Delivery('Violetta', 'Kirova st. 24a', 13)
+    new Delivery('Violetta', 'Kirova st. 24a', 13),
 ];
 
 renderDeliveries(deliveryArr, containerEl, TotalDistanceEl);
-
 totalDistanceWrap.append(TotalDistanceEl);
 appEl.append(totalDistanceWrap);
